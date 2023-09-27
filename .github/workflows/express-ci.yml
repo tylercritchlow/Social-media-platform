@@ -17,7 +17,7 @@ jobs:
           node-version: 14
 
       - name: Install dependencies
-        run: npm install ejs express express-session path jsonwebtoken mysql multer cookie-parser express-rate-limit
+        run: npm install ejs express express-session path jsonwebtoken mysql multer cookie-parser express-rate-limit dotenv
 
       - name: Run Express.js
         run: node backend/index.js
