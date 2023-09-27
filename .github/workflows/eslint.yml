@@ -1,0 +1,35 @@
+name: ESLint
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  eslint:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint
+        run: npx eslint backend/index.js --fix
+
+      - name: Check for unfixable errors
+        id: check-errors
+        run: echo "::set-output name=has_errors::$(npx eslint --quiet --max-warnings 0 backend/index.js --format=json | jq 'length > 0')"
+
+      - name: Fail if unfixable errors found
+        run: |
+          if [[ "${{ steps.check-errors.outputs.has_errors }}" == "true" ]]; then
+            echo "Unfixable errors found. ESLint check failed."
+            exit 1
+          fi

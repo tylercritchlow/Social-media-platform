@@ -34,6 +34,13 @@ body {
     background-color: #3274d6;
     color: #ffffff;
 }
+a {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color:lightblue
+}
 .login form input[type="password"], .login form input[type="text"] {
     width: 310px;
     height: 50px;
