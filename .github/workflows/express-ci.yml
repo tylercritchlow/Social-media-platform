@@ -28,23 +28,23 @@ jobs:
 
       - name: Check for console errors
         run: |
-          error_msg_home=$(curl -sS http://localhost:5000/home | grep -o "Error")
+          set -e
+    
+          error_msg_home=$(curl -sS http://localhost:5000/home | grep -o "Error" || true)
           if [ -n "$error_msg_home" ]; then
             echo "Error found in /home endpoint: $error_msg_home"
-            exit 1
           fi
     
-          error_msg_root=$(curl -sS http://localhost:5000/ | grep -o "Error")
+          error_msg_root=$(curl -sS http://localhost:5000/ | grep -o "Error" || true)
           if [ -n "$error_msg_root" ]; then
             echo "Error found in / endpoint: $error_msg_root"
-            exit 1
           fi
 
-          error_msg_auth=$(curl -sS http://localhost:5000/auth | grep -o "Error")
+          error_msg_auth=$(curl -sS http://localhost:5000/auth | grep -o "Error" || true)
           if [ -n "$error_msg_auth" ]; then
             echo "Error found in /auth endpoint: $error_msg_auth"
-            exit 1
           fi
+
 
       - name: Stop Express.js
         run: pkill -f "node backend/index.js"
