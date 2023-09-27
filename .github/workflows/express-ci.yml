@@ -30,20 +30,17 @@ jobs:
         run: |
           set -e
     
-          error_msg_home=$(curl -sS http://localhost:5000/home | grep -o "Error" || true)
-          if [ -n "$error_msg_home" ]; then
-            echo "Error found in /home endpoint: $error_msg_home"
-          fi
+          response_home=$(curl -sS http://localhost:5000/home)
+          echo "Response from /home endpoint:"
+          echo "$response_home"
     
-          error_msg_root=$(curl -sS http://localhost:5000/ | grep -o "Error" || true)
-          if [ -n "$error_msg_root" ]; then
-            echo "Error found in / endpoint: $error_msg_root"
-          fi
+          response_root=$(curl -sS http://localhost:5000/)
+          echo "Response from / endpoint:"
+          echo "$response_root"
 
-          error_msg_auth=$(curl -sS http://localhost:5000/auth | grep -o "Error" || true)
-          if [ -n "$error_msg_auth" ]; then
-            echo "Error found in /auth endpoint: $error_msg_auth"
-          fi
+          response_auth=$(curl -sS http://localhost:5000/auth)
+          echo "Response from /auth endpoint:"
+          echo "$response_auth"
 
 
       - name: Stop Express.js
