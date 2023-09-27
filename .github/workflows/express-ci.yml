@@ -34,17 +34,17 @@ jobs:
             exit 1
           fi
     
-         error_msg_root=$(curl -sS http://localhost:5000/ | grep -o "Error")
-         if [ -n "$error_msg_root" ]; then
-           echo "Error found in / endpoint: $error_msg_root"
-           exit 1
-        fi
+          error_msg_root=$(curl -sS http://localhost:5000/ | grep -o "Error")
+          if [ -n "$error_msg_root" ]; then
+            echo "Error found in / endpoint: $error_msg_root"
+            exit 1
+          fi
 
-        error_msg_auth=$(curl -sS http://localhost:5000/auth | grep -o "Error")
-        if [ -n "$error_msg_auth" ]; then
-          echo "Error found in /auth endpoint: $error_msg_auth"
-          exit 1
-        fi
+          error_msg_auth=$(curl -sS http://localhost:5000/auth | grep -o "Error")
+          if [ -n "$error_msg_auth" ]; then
+            echo "Error found in /auth endpoint: $error_msg_auth"
+            exit 1
+          fi
 
       - name: Stop Express.js
         run: pkill -f "node backend/index.js"
