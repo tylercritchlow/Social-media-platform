@@ -1,15 +1,35 @@
-name: Lint
+name: ESLint
 
-on: push
+on:
+  - push
+  - pull_request
 
 jobs:
   eslint:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
-      - uses: mrdivyansh/eslint-action@v1.0.7
-        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }} 
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js environment
+        uses: actions/setup-node@v2
         with:
-          repo-token: ${{secrets.GITHUB_TOKEN}}
-          eslint-rc: .eslintrc.js
-          execute-on-files: './backend'
+          node-version: 14
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npx eslint backend/index.js --fix
+
+      - name: Check for unfixable errors
+        id: check-errors
+        run: echo "::set-output name=has_errors::$(npx eslint backend/index.js --quiet --max-warnings 0 --format json | jq '.errorCount > 0')"
+
+      - name: Fail if unfixable errors found
+        run: |
+          if [[ "${{ steps.check-errors.outputs.has_errors }}" == "true" ]]; then
+            echo "Unfixable errors found. ESLint check failed."
+            exit 1
+          fi
