@@ -15,3 +15,10 @@ Our endpoints are currently:
 
 - `upload` **[[POST](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST)]**
     - Used in backend for uploading a picture to serverside.
+
+## Use `docker compose`
+
+1. `docker compose up -d --force-recreate`
+2. `docker ps` -- MAKE SURE PROCCESS IS RUNNING
+    - If not `docker compose logs mysql`, and see the error.
+3. Should be all set.
