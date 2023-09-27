@@ -25,7 +25,7 @@ jobs:
 
       - name: Check for unfixable errors
         id: check-errors
-        run: echo "::set-output name=has_errors::$(npx eslint backend/index.js --quiet --max-warnings 0 --format json | jq '.errorCount > 0')"
+        run: echo "::set-output name=has_errors::$(npx eslint --quiet --max-warnings 0 backend/index.js --format=json | jq 'length > 0')"
 
       - name: Fail if unfixable errors found
         run: |
