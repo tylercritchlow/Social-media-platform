@@ -1,13 +1,19 @@
+require("dotenv").config();
+
 const express = require('express')
 const app = express()
 const rateLimitMiddleware = require("./middlewares/ratelimit");
+const verifyToken = require("./middlewares/verify_token")
 const port = 5000
 
 const mysql = require('mysql');
 const session = require('express-session');
 const path = require('path');
 
-const multer = require('multer')
+const jwt = require('jsonwebtoken')
+const multer = require('multer');
+const cookieParser = require('cookie-parser');
+
 
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
@@ -34,9 +40,9 @@ app.post('/upload', upload.single('photo'), (req, res) => {
   res.status(200).json({ imageUrl });
 });
   
-// function generateAccessToken(username) {
-//     return jwt.sign(username, process.env.TOKEN_SECRET);
-// }
+function generateAccessToken(pass) {
+    return jwt.sign(pass, process.env.JWT_KEY);
+}
 
 function createAccount(username, password, callback) {
     connection.query('SELECT * FROM accounts WHERE username = ?', [username], function (error, results) {
@@ -59,15 +65,7 @@ function createAccount(username, password, callback) {
 }
 
 const connection = mysql.createConnection({
-    host: 'localhost',
-    user: 'root',
-    password: '',
-    database: 'nodelogin'
-});
-
-
-const postConnection = mysql.createConnection({
-    host: 'localhost',
+    host: '0.0.0.0',
     user: 'root',
     password: '',
     database: 'nodelogin'
@@ -83,6 +81,7 @@ app.use(session({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + '/static'));
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname + '\\views/login.html'));
@@ -95,10 +94,19 @@ app.post('/auth', function (request, response) {
     if (username && password) {
         connection.query('SELECT * FROM accounts WHERE username = ? AND password = ?', [username, password], function (error, results, fields) {
             if (error) throw error;
+            const tokenCookie = request.cookies._token;
 
-            if (results.length > 0) {
-                request.session.loggedin = true;
+            if (tokenCookie) {
+                response.redirect('/home');
+            } else if (results.length > 0) {
                 request.session.username = username;
+
+                // Assuming you have a function to generate the JWT token
+                const token = generateAccessToken(username);
+                
+                // Set the JWT token as a cookie
+                response.cookie('_token', token, { expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), httpOnly: true });
+
                 response.redirect('/home');
             } else {
                 createAccount(username, password, (err) => {
@@ -106,7 +114,6 @@ app.post('/auth', function (request, response) {
                         console.error('Error creating account:', err);
                         response.status(500).send('Error creating account');
                     } else {
-                        request.session.loggedin = true;
                         request.session.username = username;
                         response.redirect('/home');
                     }
@@ -118,9 +125,8 @@ app.post('/auth', function (request, response) {
     }
 });
 
-app.get('/home', function (request, response) {
-    // if (request.session.loggedin) {
-    postConnection.query("SELECT * FROM createdposts", function (err, rows) {
+app.get('/home', verifyToken, function (request, response) {
+    connection.query("SELECT * FROM createdposts", function (err, rows) {
         if (err) {
             console.error('Error retrieving entries:', err);
             response.status(500).send('Error retrieving entries');
@@ -128,9 +134,6 @@ app.get('/home', function (request, response) {
             response.render('index.ejs', { username: request.session.username, posts: rows });
         }
     });
-    // } else {
-    // NOT LOGGED IN
-    // }
 });
 
 app.post('/createPost', rateLimitMiddleware, (req, res) => {
@@ -144,7 +147,7 @@ app.post('/createPost', rateLimitMiddleware, (req, res) => {
     }
 
     const sql = "INSERT INTO createdPosts (user, postcontent, imageUrl) VALUES (?, ?, ?)";
-    postConnection.query(sql, [user, postContent, imageUrl], (err, result) => {
+    connection.query(sql, [user, postContent, imageUrl], (err, result) => {
         if (err) {
             console.error('Error creating a post:', err);
             res.status(500).send('Error creating a post');
@@ -162,7 +165,7 @@ app.route("/editPost")
         const updatedPostContent = req.body.post;
 
         const sql = "UPDATE createdPosts SET postcontent = ? WHERE id = ?";
-        postConnection.query(sql, [updatedPostContent, postID], (err, result) => {
+        connection.query(sql, [updatedPostContent, postID], (err, result) => {
             if (err) {
                 console.error('Error editing the post:', err);
                 res.status(500).send('Error editing the post');
@@ -178,7 +181,7 @@ app.route("/deletePost")
         const postID = req.body.postID;
 
         const sql = "DELETE FROM createdPosts WHERE id = ?";
-        postConnection.query(sql, [postID], (err, result) => {
+        connection.query(sql, [postID], (err, result) => {
             if (err) {
                 console.error('Error deleting the post:', err);
                 res.status(500).send('Error deleting the post');
@@ -190,6 +193,7 @@ app.route("/deletePost")
     });
 
 
-app.listen(port, () => {
-    console.log(`Listening on ${port}`)
+app.listen(port, `0.0.0.0`, () => {
+    console.log(`Listening on 0.0.0.0:${port}`)
 })
+
