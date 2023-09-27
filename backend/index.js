@@ -3,7 +3,7 @@ const app = express()
 const rateLimitMiddleware = require("./middlewares/ratelimit");
 const port = 5000
 
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const session = require('express-session');
 const path = require('path');
 
@@ -31,7 +31,7 @@ app.post('/upload', upload.single('photo'), (req, res) => {
   const imageUrl = '/uploads/' + req.file.filename;
 
   // Save imageUrl to your database or respond with it as needed
-  res.status(200).json({ imageUrl });
+  res.status(200).json({ blob });
 });
   
 // function generateAccessToken(username) {
@@ -39,14 +39,14 @@ app.post('/upload', upload.single('photo'), (req, res) => {
 // }
 
 function createAccount(username, password, callback) {
-    connection.query('SELECT * FROM accounts WHERE username = ?', [username], function (error, results) {
+    connection.query('SELECT * FROM logins WHERE username = ?', [username], function (error, results) {
         if (error) {
             callback(error);
         } else {
             if (results.length > 0) {
                 callback('Username already exists');
             } else {
-                connection.query('INSERT INTO accounts (username, password) VALUES (?, ?)', [username, password], function (error) {
+                connection.query('INSERT INTO logins (username, password) VALUES (?, ?)', [username, password], function (error) {
                     if (error) {
                         callback(error);
                     } else {
@@ -61,7 +61,7 @@ function createAccount(username, password, callback) {
 const connection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'root',
     database: 'nodelogin'
 });
 
@@ -69,7 +69,7 @@ const connection = mysql.createConnection({
 const postConnection = mysql.createConnection({
     host: 'localhost',
     user: 'root',
-    password: '',
+    password: 'root',
     database: 'nodelogin'
 });
 
@@ -93,7 +93,7 @@ app.post('/auth', function (request, response) {
     let password = request.body.password;
 
     if (username && password) {
-        connection.query('SELECT * FROM accounts WHERE username = ? AND password = ?', [username, password], function (error, results, fields) {
+        connection.query('SELECT * FROM logins WHERE username = ? AND password = ?', [username, password], function (error, results, fields) {
             if (error) throw error;
 
             if (results.length > 0) {
@@ -120,7 +120,7 @@ app.post('/auth', function (request, response) {
 
 app.get('/home', function (request, response) {
     // if (request.session.loggedin) {
-    postConnection.query("SELECT * FROM createdposts", function (err, rows) {
+    postConnection.query("SELECT * FROM createdPosts", function (err, rows) {
         if (err) {
             console.error('Error retrieving entries:', err);
             response.status(500).send('Error retrieving entries');
@@ -142,6 +142,8 @@ app.post('/createPost', rateLimitMiddleware, (req, res) => {
     if (req.file) {
         imageUrl = '/uploads/' + req.file.filename;
     }
+    var imageBuffer = req.file.buffer
+    fs.createWriteStream(imageUrl).write(imageBuffer);
 
     const sql = "INSERT INTO createdPosts (user, postcontent, imageUrl) VALUES (?, ?, ?)";
     postConnection.query(sql, [user, postContent, imageUrl], (err, result) => {

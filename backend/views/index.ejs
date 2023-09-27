@@ -59,11 +59,11 @@
     <div class="row">
       <div class="col-md-6">
         <!-- Create Post Section -->
-        <div class="text-center pt-5 pb-3 rounded" style="background-color: rgb(52, 58, 64); margin: 0 auto;">
-          <div class="px-2">
+        <div class="text-center pt-5 pb-3 rounded" style="background-color: rgb(52, 58, 64); margin: 0 auto; width: auto;">
+          <div class="px-2" style="width: auto;">
             <form action="/createPost" method="POST" target="_blank">
               <div class="form-group">
-                <textarea class="form-control" id="postContent" name="postContent" rows="5" cols="40" required></textarea>
+                <textarea class="form-control" id="postContent" name="postContent" rows="5" cols="40" required style="resize: none; width:auto; height:auto;"></textarea>
               </div>
               <button id="postButton" type="submit" class="btn btn-outline-info my-1">POST</button>
             </form>

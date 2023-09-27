@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:latest
+    container_name: 'mysql'
+    environment:
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: nodelogin
+    volumes:
+      - "./conf/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"
+    ports:
+      - "3306:3306"
+
+volumes:
+  conf:
