@@ -50,14 +50,6 @@ app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/static'));
 app.use(cookieParser());
 
-app.post('/upload', upload.single('photo'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
-  }
-  const imageUrl = '/uploads/' + req.file.filename;
-  res.status(200).json({imageUrl});
-});
-
 /**
  * Generates a json web token, based on user's password.
  * @constructor
@@ -100,6 +92,14 @@ function createAccount(username, password, callback) {
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname + '\\views/login.html'));
+});
+
+app.post('/upload', upload.single('photo'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).send('No file uploaded.');
+  }
+  const imageUrl = '/uploads/' + req.file.filename;
+  res.status(200).json({imageUrl});
 });
 
 app.post('/auth', function(request, response) {
