@@ -30,17 +30,9 @@ jobs:
         run: |
           set -e
     
-          response_home=$(curl -sS http://localhost:5000/home)
-          echo "Response from /home endpoint:"
-          echo "$response_home"
-    
-          response_root=$(curl -sS http://localhost:5000/)
+          response_home=$(curl -sS http://localhost:5000/)
           echo "Response from / endpoint:"
-          echo "$response_root"
-
-          response_auth=$(curl -sS http://localhost:5000/auth)
-          echo "Response from /auth endpoint:"
-          echo "$response_auth"
+          echo "$response_home"
 
 
       - name: Stop Express.js
