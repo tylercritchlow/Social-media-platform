@@ -39,7 +39,7 @@ const connection = mysql.createConnection({
 
 // SETUP APP
 
-app.set('views', __dirname + '\\views');
+app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
 app.use(session({
   secret: 'secret',
@@ -92,7 +92,7 @@ function createAccount(username, password, callback) {
 }
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname + '\\views/login.html'));
+  res.sendFile(path.join(__dirname + '/views/login.html'));
 });
 
 app.post('/upload', upload.single('photo'), (req, res) => {
@@ -119,7 +119,7 @@ app.post('/auth', function(request, response) {
           } else if (results.length > 0) {
             request.session.username = username;
 
-            const token = generateAccessToken(username);
+            const token = generateAccessToken(password);
 
             response.cookie(
                 '_token', token,
@@ -190,19 +190,33 @@ app.route('/editPost')
     });
 
 app.get('/createaccount', function (request, response) {
-    response.sendfile(__dirname + '/views/signup.html')
+    response.sendFile(path.join(__dirname + '/views/signup.html'));
 })
 
-app.get('/signupauth', function (request, response) {
+app.post('/signupauth', function (request, response) {
     let username = request.body.username;
     let password = request.body.password;
+    let confirm_password = request.body.confirm_password;
+    
+    if (password != confirm_password) {
+        throw TypeError;
+    }
 
     createAccount(username, password, (err) => {
         if (err) {
             console.error('Error creating account:', err);
-            response.status(500).send('Error creating account');
+            response.status(500).send(`Error creating account ${err}`);
         } else {
             request.session.username = username;
+
+            const token = generateAccessToken(password);
+
+            response.cookie(
+                '_token', token,
+                {expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                  httpOnly: true},
+            );
+
             response.redirect('/home');
         }
     });
