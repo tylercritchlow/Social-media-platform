@@ -14,11 +14,13 @@ const cookieParser = require('cookie-parser');
 
 const rateLimitMiddleware = require('./middlewares/ratelimit');
 const verifyToken = require('./middlewares/verify_token');
+const csrf = require('csurf');
 
 // CONSTANTS
 
 const app = express();
 const port = 5000;
+const csrfProtection = csrf();
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, 'uploads/');
@@ -31,10 +33,10 @@ const storage = multer.diskStorage({
 const upload = multer({storage});
 const connection = mysql.createConnection({
   host: '0.0.0.0',
-  user: 'admin',
-  password: 'root',
-  database: 'nodelogin',
-  port: 3307
+  user: process.env.SQL_USER,
+  password: process.env.SQL_PASS,
+  database: process.env.SQL_DB,
+  port: process.env.SQL_PORT
 });
 
 // SETUP APP
@@ -42,10 +44,11 @@ const connection = mysql.createConnection({
 app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
 app.use(session({
-  secret: 'secret',
+  secret: process.env.SESSION_SECRET,
   resave: true,
   saveUninitialized: true,
 }));
+app.use(csrfProtection);
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/static'));
@@ -91,7 +94,7 @@ function createAccount(username, password, callback) {
       });
 }
 
-app.get('/', (req, res) => {
+app.get('/', rateLimitMiddleware, (req, res) => {
   res.sendFile(path.join(__dirname + '/views/login.html'));
 });
 
@@ -103,7 +106,7 @@ app.post('/upload', upload.single('photo'), (req, res) => {
   res.status(200).json({imageUrl});
 });
 
-app.post('/auth', function(request, response) {
+app.post('/auth', rateLimitMiddleware, function(request, response) {
   const username = request.body.username;
   const password = request.body.password;
 
@@ -135,7 +138,7 @@ app.post('/auth', function(request, response) {
   }
 });
 
-app.get('/home', verifyToken, function(request, response) {
+app.get('/home', verifyToken, rateLimitMiddleware, function(request, response) {
   connection.query('SELECT * FROM createdPosts', function(err, rows) {
     if (err) {
       console.error('Error retrieving entries:', err);
@@ -189,11 +192,11 @@ app.route('/editPost')
       });
     });
 
-app.get('/createaccount', function (request, response) {
+app.get('/createaccount', rateLimitMiddleware, function (request, response) {
     response.sendFile(path.join(__dirname + '/views/signup.html'));
 })
 
-app.post('/signupauth', function (request, response) {
+app.post('/signupauth', rateLimitMiddleware, function (request, response) {
     let username = request.body.username;
     let password = request.body.password;
     let confirmPassword = request.body.confirm_password;
