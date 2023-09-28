@@ -9,23 +9,22 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
+const argon2 = require('argon2');
 
 // MIDDLEWARES
 
 const rateLimitMiddleware = require('./middlewares/ratelimit');
 const verifyToken = require('./middlewares/verify_token');
-const csrf = require('csurf');
 
 // CONSTANTS
 
 const app = express();
 const port = 5000;
-const csrfProtection = csrf();
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
+  destination: (request, file, cb) => {
     cb(null, 'uploads/');
   },
-  filename: (req, file, cb) => {
+  filename: (request, file, cb) => {
     const extname = path.extname(file.originalname);
     cb(null, Date.now() + extname);
   },
@@ -36,7 +35,7 @@ const connection = mysql.createConnection({
   user: process.env.SQL_USER,
   password: process.env.SQL_PASS,
   database: process.env.SQL_DB,
-  port: process.env.SQL_PORT
+  port: process.env.SQL_PORT,
 });
 
 // SETUP APP
@@ -48,7 +47,6 @@ app.use(session({
   resave: true,
   saveUninitialized: true,
 }));
-app.use(csrfProtection);
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/static'));
@@ -70,10 +68,10 @@ function generateAccessToken(pass) {
  * @param {string} password - The user's password.
  * @param {Object} callback - The function that gets called on error.
  */
-function createAccount(username, password, callback) {
+async function createAccount(username, password, callback) {
   connection.query(
       'SELECT * FROM logins WHERE username = ?',
-      [username], function(error, results) {
+      [username], async function(error, results) {
         if (error) {
           callback(error);
         } else {
@@ -82,7 +80,7 @@ function createAccount(username, password, callback) {
           } else {
             connection.query(
                 'INSERT INTO logins (username, password) VALUES (?, ?)',
-                [username, password], function(error) {
+                [username, await argon2.hash(password)], function(error) {
                   if (error) {
                     callback(error);
                   } else {
@@ -94,45 +92,64 @@ function createAccount(username, password, callback) {
       });
 }
 
-app.get('/', rateLimitMiddleware, (req, res) => {
-  res.sendFile(path.join(__dirname + '/views/login.html'));
+app.get('/', rateLimitMiddleware, (request, response) => {
+  response.sendFile(path.join(__dirname + '/views/login.html'));
 });
 
-app.post('/upload', upload.single('photo'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).send('No file uploaded.');
+app.post('/upload', upload.single('photo'), (request, response) => {
+  if (!request.file) {
+    return response.status(400).send('No file uploaded.');
   }
-  const imageUrl = '/uploads/' + req.file.filename;
-  res.status(200).json({imageUrl});
+  const imageUrl = '/uploads/' + request.file.filename;
+  response.status(200).json({imageUrl});
 });
 
-app.post('/auth', rateLimitMiddleware, function(request, response) {
+app.post('/auth', rateLimitMiddleware, async function(request, response) {
   const username = request.body.username;
   const password = request.body.password;
 
   if (username && password) {
     connection.query(
-        'SELECT * FROM logins WHERE username = ? AND password = ?',
-        [username, password], function(error, results, fields) {
-          if (error) throw error;
-          const tokenCookie = request.cookies._token;
+        'SELECT * FROM logins WHERE username = ?',
+        [username], async function(error, results, fields) {
+          if (results.length > 0) {
+            const hashedPassword = results[0].password;
 
-          if (tokenCookie) {
-            response.redirect('/home');
-          } else if (results.length > 0) {
-            request.session.username = username;
+            try {
+              if (await argon2.verify(hashedPassword, password)) {
+                const tokenCookie = request.cookies._token;
 
-            const token = generateAccessToken(password);
+                if (tokenCookie) {
+                  response.redirect('/home');
+                } else {
+                  request.session.username = username;
 
-            response.cookie(
-                '_token', token,
-                {expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                  httpOnly: true},
-            );
+                  const token = generateAccessToken(password);
 
-            response.redirect('/home');
+                  response.cookie(
+                      '_token',
+                      token,
+                      {
+                        // eslint-disable-next-line max-len
+                        expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                        httpOnly: true,
+                      },
+                  );
+
+                  response.redirect('/home');
+                }
+              } else {
+                response.send('Invalid username or password');
+              }
+            } catch (err) {
+              console.error('Error verifying password:', err);
+              response.status(500).send('Internal server error');
+            }
+          } else {
+            response.send('Invalid username or password');
           }
-        });
+        },
+    );
   } else {
     response.send('Please enter Username and Password!');
   }
@@ -152,13 +169,13 @@ app.get('/home', verifyToken, rateLimitMiddleware, function(request, response) {
   });
 });
 
-app.post('/createPost', rateLimitMiddleware, (req, res) => {
-  const postContent = req.body.postContent;
-  const user = req.session.username;
+app.post('/createPost', rateLimitMiddleware, (request, response) => {
+  const postContent = request.body.postContent;
+  const user = request.session.username;
 
   let imageUrl = '';
-  if (req.file) {
-    imageUrl = '/uploads/' + req.file.filename;
+  if (request.file) {
+    imageUrl = '/uploads/' + request.file.filename;
   }
 
   imageUrl.btoa();
@@ -168,78 +185,78 @@ app.post('/createPost', rateLimitMiddleware, (req, res) => {
   connection.query(sql, [user, postContent, imageUrl], (err, result) => {
     if (err) {
       console.error('Error creating a post:', err);
-      res.status(500).send('Error creating a post');
+      response.status(500).send('Error creating a post');
       return;
     }
     console.log('Post created successfully');
-    res.send('Post created successfully');
+    response.send('Post created successfully');
   });
 });
 
 
 app.route('/editPost')
-    .post(rateLimitMiddleware, function(req, res) {
-      const postID = req.body.postID;
-      const updatedPostContent = req.body.post;
+    .post(rateLimitMiddleware, function(request, response) {
+      const postID = request.body.postID;
+      const updatedPostContent = request.body.post;
 
       const sql = 'UPDATE createdPosts SET postcontent = ? WHERE id = ?';
       connection.query(sql, [updatedPostContent, postID], (err, result) => {
         if (err) {
           console.error('Error editing the post:', err);
-          res.status(500).send('Error editing the post');
+          response.status(500).send('Error editing the post');
           return;
         }
         console.log('Post edited successfully');
-        res.send('Post edited successfully');
+        response.send('Post edited successfully');
       });
     });
 
-app.get('/createaccount', rateLimitMiddleware, function (request, response) {
-    response.sendFile(path.join(__dirname + '/views/signup.html'));
-})
+app.get('/createaccount', rateLimitMiddleware, function(request, response) {
+  response.sendFile(path.join(__dirname + '/views/signup.html'));
+});
 
-app.post('/signupauth', rateLimitMiddleware, function (request, response) {
-    let username = request.body.username;
-    let password = request.body.password;
-    let confirmPassword = request.body.confirm_password;
-    
-    if (password != confirmPassword) {
-        throw TypeError;
+app.post('/signupauth', rateLimitMiddleware, async function(request, response) {
+  const username = request.body.username;
+  const password = request.body.password;
+  const confirmPassword = request.body.confirm_password;
+
+  if (password != confirmPassword) {
+    throw TypeError;
+  }
+
+  await createAccount(username, password, (err) => {
+    if (err) {
+      console.error('Error creating account:', err);
+      response.status(500).send(`Error creating account ${err}`);
+    } else {
+      request.session.username = username;
+
+      const token = generateAccessToken(password);
+
+      response.cookie(
+          '_token', token,
+          {expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            httpOnly: true},
+      );
+
+      response.redirect('/home');
     }
-
-    createAccount(username, password, (err) => {
-        if (err) {
-            console.error('Error creating account:', err);
-            response.status(500).send(`Error creating account ${err}`);
-        } else {
-            request.session.username = username;
-
-            const token = generateAccessToken(password);
-
-            response.cookie(
-                '_token', token,
-                {expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-                  httpOnly: true},
-            );
-
-            response.redirect('/home');
-        }
-    });
-})
+  });
+});
 
 app.route('/deletePost')
-    .post(rateLimitMiddleware, function(req, res) {
-      const postID = req.body.postID;
+    .post(rateLimitMiddleware, function(request, response) {
+      const postID = request.body.postID;
 
       const sql = 'DELETE FROM createdPosts WHERE id = ?';
       connection.query(sql, [postID], (err, result) => {
         if (err) {
           console.error('Error deleting the post:', err);
-          res.status(500).send('Error deleting the post');
+          response.status(500).send('Error deleting the post');
           return;
         }
         console.log('Post deleted successfully');
-        res.send('Post deleted successfully');
+        response.send('Post deleted successfully');
       });
     });
 
