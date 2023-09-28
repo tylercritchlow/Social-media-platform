@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Social Media Platform</title>
   <script src="../index.js" defer></script>
-  <link rel="stylesheet" type="text/css" href="styles.css" />
+  <link rel="stylesheet" type="text/css" href="index.css" />
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css"
     integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
@@ -59,16 +59,16 @@
     <div class="row">
       <div class="col-md-6">
         <!-- Create Post Section -->
-        <div class="text-center pt-5 pb-3 rounded" style="background-color: rgb(52, 58, 64); margin: 0 auto; width: auto;">
-          <div class="px-2" style="width: auto;">
+        <div class="text-center pt-5 pb-3 rounded" id="d1">
+          <div class="px-2" id="d3">
             <form action="/createPost" method="POST" target="_blank">
               <div class="form-group">
-                <textarea class="form-control" id="postContent" name="postContent" rows="5" cols="40" required style="resize: none; width:auto; height:auto;"></textarea>
+                <textarea class="form-control" id="postContent" name="postContent" rows="5" cols="40" required></textarea>
               </div>
               <button id="postButton" type="submit" class="btn btn-outline-info my-1">POST</button>
             </form>
             <form onsubmit="console.log('submitted');" action="/upload" method="POST" enctype="multipart/form-data" >
-              <input id="upload-photo" type="file" name="photo" accept="image/*" style="opacity: 0;position: absolute;z-index: -1;">
+              <input id="upload-photo" type="file" name="photo" accept="image/*" id="inp">
               <label class="text-primary pr-3 btn btn-outline-info my-1" for="upload-photo">Browse...</label>
               <button class="btn btn-outline-info my-1" type="submit">Upload</button>
             </form>            
@@ -78,7 +78,7 @@
       <div class="col-md-6">
         <div id="posts">
           <% posts.forEach(function(post) { %>
-            <div class="post card mb-3 p-3 rounded text-primary" style="background-color: rgb(52, 58, 64); margin: 0 auto;">
+            <div class="post card mb-3 p-3 rounded text-primary" id="d2">
               <div class="row">
                 <div class="col-md-12">
                   <div class="post-header font-weight-bold">
