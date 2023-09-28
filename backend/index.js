@@ -196,9 +196,9 @@ app.get('/createaccount', function (request, response) {
 app.post('/signupauth', function (request, response) {
     let username = request.body.username;
     let password = request.body.password;
-    let confirm_password = request.body.confirm_password;
+    let confirmPassword = request.body.confirm_password;
     
-    if (password != confirm_password) {
+    if (password != confirmPassword) {
         throw TypeError;
     }
 
