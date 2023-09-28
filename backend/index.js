@@ -10,6 +10,7 @@ const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const cookieParser = require('cookie-parser');
 const argon2 = require('argon2');
+const fs = require('fs');
 
 // MIDDLEWARES
 
@@ -37,6 +38,10 @@ const connection = mysql.createConnection({
   database: process.env.SQL_DB,
   port: process.env.SQL_PORT,
 });
+
+const myCSS = {
+  style : fs.readFileSync(path.join(__dirname, '/static/index.css'),'utf8'),
+};
 
 // SETUP APP
 
@@ -163,7 +168,7 @@ app.get('/home', verifyToken, rateLimitMiddleware, function(request, response) {
     } else {
       response.render(
           'index.ejs',
-          {username: request.session.username, posts: rows},
+          {username: request.session.username, posts: rows, css: myCSS},
       );
     }
   });

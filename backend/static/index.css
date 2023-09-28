@@ -1,24 +1,26 @@
-#d1 {
-    background-color: rgb(52, 58, 64); 
-    margin: 0 auto; 
-    width: auto;
-}
+<style>
+   #d1 {
+        background-color: rgb(52, 58, 64); 
+        margin: 0 auto; 
+        width: auto;
+    }
 
-#d2 {
-    background-color: rgb(52, 58, 64); 
-    margin: 0 auto
-}
+    #d2 {
+        background-color: rgb(52, 58, 64); 
+        margin: 0 auto
+    }
 
-#d3 {
-    width: auto;
-}
+    #d3 {
+        width: auto;
+    }
 
-#inp {
-    opacity: 0;
-    position: absolute;
-    z-index: -1;
-}
+    #inp {
+        opacity: 0;
+        position: absolute;
+        z-index: -1;
+    }
 
-textarea {
-    resize: none; width:auto; height:auto;
-}
+    textarea {
+        resize: none; width:auto; height:auto;
+    }
+</style>
