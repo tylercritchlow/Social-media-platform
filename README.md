@@ -22,3 +22,18 @@ Our endpoints are currently:
 2. `docker ps` -- MAKE SURE PROCCESS IS RUNNING
     - If not `docker compose logs mysql`, and see the error.
 3. Should be all set.
+
+## Enviorment variables (`.env`)
+
+1. `JWT_KEY=`
+    - HASH
+2. `SESSION_SECRET=`
+   - HASH
+3. `SQL_USER=`
+    - STR
+5. `SQL_DB=`
+    - STR
+7. `SQL_PASS=`
+    - STR
+9. `SQL_PORT=`
+    - INT
