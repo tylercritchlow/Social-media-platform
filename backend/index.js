@@ -3,7 +3,7 @@ require('dotenv').config();
 // IMPORTS
 
 const express = require('express');
-const mysql = require('mysql');
+const mysql = require('mysql2');
 const session = require('express-session');
 const path = require('path');
 const jwt = require('jsonwebtoken');
@@ -31,14 +31,15 @@ const storage = multer.diskStorage({
 const upload = multer({storage});
 const connection = mysql.createConnection({
   host: '0.0.0.0',
-  user: 'root',
-  password: '',
+  user: 'admin',
+  password: 'root',
   database: 'nodelogin',
+  port: 3307
 });
 
 // SETUP APP
 
-app.set('views', __dirname + '\\views');
+app.set('views', __dirname + '/views');
 app.engine('html', require('ejs').renderFile);
 app.use(session({
   secret: 'secret',
@@ -68,7 +69,7 @@ function generateAccessToken(pass) {
  */
 function createAccount(username, password, callback) {
   connection.query(
-      'SELECT * FROM accounts WHERE username = ?',
+      'SELECT * FROM logins WHERE username = ?',
       [username], function(error, results) {
         if (error) {
           callback(error);
@@ -77,7 +78,7 @@ function createAccount(username, password, callback) {
             callback('Username already exists');
           } else {
             connection.query(
-                'INSERT INTO accounts (username, password) VALUES (?, ?)',
+                'INSERT INTO logins (username, password) VALUES (?, ?)',
                 [username, password], function(error) {
                   if (error) {
                     callback(error);
@@ -91,7 +92,7 @@ function createAccount(username, password, callback) {
 }
 
 app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname + '\\views/login.html'));
+  res.sendFile(path.join(__dirname + '/views/login.html'));
 });
 
 app.post('/upload', upload.single('photo'), (req, res) => {
@@ -108,7 +109,7 @@ app.post('/auth', function(request, response) {
 
   if (username && password) {
     connection.query(
-        'SELECT * FROM accounts WHERE username = ? AND password = ?',
+        'SELECT * FROM logins WHERE username = ? AND password = ?',
         [username, password], function(error, results, fields) {
           if (error) throw error;
           const tokenCookie = request.cookies._token;
@@ -118,7 +119,7 @@ app.post('/auth', function(request, response) {
           } else if (results.length > 0) {
             request.session.username = username;
 
-            const token = generateAccessToken(username);
+            const token = generateAccessToken(password);
 
             response.cookie(
                 '_token', token,
@@ -127,16 +128,6 @@ app.post('/auth', function(request, response) {
             );
 
             response.redirect('/home');
-          } else {
-            createAccount(username, password, (err) => {
-              if (err) {
-                console.error('Error creating account:', err);
-                response.status(500).send('Error creating account');
-              } else {
-                request.session.username = username;
-                response.redirect('/home');
-              }
-            });
           }
         });
   } else {
@@ -145,7 +136,7 @@ app.post('/auth', function(request, response) {
 });
 
 app.get('/home', verifyToken, function(request, response) {
-  connection.query('SELECT * FROM createdposts', function(err, rows) {
+  connection.query('SELECT * FROM createdPosts', function(err, rows) {
     if (err) {
       console.error('Error retrieving entries:', err);
       response.status(500).send('Error retrieving entries');
@@ -197,6 +188,39 @@ app.route('/editPost')
         res.send('Post edited successfully');
       });
     });
+
+app.get('/createaccount', function (request, response) {
+    response.sendFile(path.join(__dirname + '/views/signup.html'));
+})
+
+app.post('/signupauth', function (request, response) {
+    let username = request.body.username;
+    let password = request.body.password;
+    let confirmPassword = request.body.confirm_password;
+    
+    if (password != confirmPassword) {
+        throw TypeError;
+    }
+
+    createAccount(username, password, (err) => {
+        if (err) {
+            console.error('Error creating account:', err);
+            response.status(500).send(`Error creating account ${err}`);
+        } else {
+            request.session.username = username;
+
+            const token = generateAccessToken(password);
+
+            response.cookie(
+                '_token', token,
+                {expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+                  httpOnly: true},
+            );
+
+            response.redirect('/home');
+        }
+    });
+})
 
 app.route('/deletePost')
     .post(rateLimitMiddleware, function(req, res) {
