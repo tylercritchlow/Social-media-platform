@@ -1,0 +1,26 @@
+[1mdiff --git a/backend/index.js b/backend/index.js[m
+[1mindex 95a0b00..6f8f69e 100644[m
+[1m--- a/backend/index.js[m
+[1m+++ b/backend/index.js[m
+[36m@@ -158,6 +158,8 @@[m [mapp.post('/createPost', rateLimitMiddleware, (req, res) => {[m
+     imageUrl = '/uploads/' + req.file.filename;[m
+   }[m
+ [m
+[32m+[m[32m  imageUrl.btoa();[m
+[32m+[m
+   // eslint-disable-next-line max-len[m
+   const sql = 'INSERT INTO createdPosts (user, postcontent, imageUrl) VALUES (?, ?, ?)';[m
+   connection.query(sql, [user, postContent, imageUrl], (err, result) => {[m
+[1mdiff --git a/docker-compose.yml b/docker-compose.yml[m
+[1mindex 997542d..80a7ce5 100644[m
+[1m--- a/docker-compose.yml[m
+[1m+++ b/docker-compose.yml[m
+[36m@@ -12,7 +12,7 @@[m [mservices:[m
+     volumes:[m
+       - "./conf/init.sql:/docker-entrypoint-initdb.d/init.sql:ro"[m
+     ports:[m
+[31m-      - "3306:3306"[m
+[32m+[m[32m      - "3306:3307"[m
+ [m
+ volumes:[m
+   conf:[m

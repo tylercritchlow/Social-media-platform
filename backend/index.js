@@ -161,6 +161,8 @@ app.post('/createPost', rateLimitMiddleware, (req, res) => {
     imageUrl = '/uploads/' + req.file.filename;
   }
 
+  imageUrl.btoa();
+
   // eslint-disable-next-line max-len
   const sql = 'INSERT INTO createdPosts (user, postcontent, imageUrl) VALUES (?, ?, ?)';
   connection.query(sql, [user, postContent, imageUrl], (err, result) => {
