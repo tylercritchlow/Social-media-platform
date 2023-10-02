@@ -183,7 +183,7 @@ app.post('/createPost', rateLimitMiddleware, (request, response) => {
     imageUrl = '/uploads/' + request.file.filename;
   }
 
-  imageUrl.btoa();
+  imageUrl = btoa(imageUrl);
 
   // eslint-disable-next-line max-len
   const sql = 'INSERT INTO createdPosts (user, postcontent, imageUrl) VALUES (?, ?, ?)';
