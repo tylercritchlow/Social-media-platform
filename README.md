@@ -13,7 +13,7 @@ Our endpoints are currently:
 - `/auth` **[[POST](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST)]**
     - Used in backend for authentication on login.
 
-- `upload` **[[POST](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST)]**
+- `/upload` **[[POST](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods/POST)]**
     - Used in backend for uploading a picture to serverside.
 
 ## Use `docker compose`
