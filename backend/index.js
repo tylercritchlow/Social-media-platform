@@ -186,7 +186,7 @@ app.post('/createPost', rateLimitMiddleware, (request, response) => {
   imageUrl = btoa(imageUrl);
 
   // eslint-disable-next-line max-len
-  const sql = 'INSERT INTO createdPosts (user, postcontent, imageUrl) VALUES (?, ?, ?)';
+  const sql = 'INSERT INTO createdPosts (user, postcontent, pictures) VALUES (?, ?, ?)';
   connection.query(sql, [user, postContent, imageUrl], (err, result) => {
     if (err) {
       console.error('Error creating a post:', err);
