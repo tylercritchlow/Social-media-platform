@@ -97,7 +97,7 @@ async function createAccount(username, password, callback) {
       });
 }
 
-app.get('/', rateLimitMiddleware, (request, response) => {
+app.get('/', verifyToken, (request, response) => {
   response.sendFile(path.join(__dirname + '/views/login.html'));
 });
 
@@ -110,6 +110,7 @@ app.post('/upload', upload.single('photo'), (request, response) => {
 });
 
 app.post('/auth', rateLimitMiddleware, async function(request, response) {
+  console.log(request.body)
   const username = request.body.username;
   const password = request.body.password;
 
@@ -160,7 +161,7 @@ app.post('/auth', rateLimitMiddleware, async function(request, response) {
   }
 });
 
-app.get('/home', verifyToken, rateLimitMiddleware, function(request, response) {
+app.get('/home', verifyToken, function(request, response) {
   connection.query('SELECT * FROM createdPosts', function(err, rows) {
     if (err) {
       console.error('Error retrieving entries:', err);
@@ -216,7 +217,7 @@ app.route('/editPost')
       });
     });
 
-app.get('/createaccount', rateLimitMiddleware, function(request, response) {
+app.get('/createaccount', verifyToken, function(request, response) {
   response.sendFile(path.join(__dirname + '/views/signup.html'));
 });
 
