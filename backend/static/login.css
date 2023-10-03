@@ -95,11 +95,12 @@ body {
     background: #e6e6e6;
     height: 40px;
     display: flex;
-    width: 60%;
     align-items: center;
     border-radius: 10px;
     padding: 0 15px;
     margin: 5px 0;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .text-input input {

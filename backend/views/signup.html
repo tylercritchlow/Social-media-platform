@@ -20,19 +20,19 @@
         </div>
         <div class="login">
 			<h3 class="title">User Signup</h3>
-			<div class="text-input">
-				<i class="ri-user-fill"></i>
-				<input type="text" id="username" name="username" placeholder="Username">
-			</div>
-			<div class="text-input">
-				<i class="ri-lock-fill"></i>
-				<input type="password" id="password" name="password" placeholder="Password">
-			</div>
-			<div class="text-input">
-				<i class="ri-lock-fill"></i>
-				<input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
-			</div>
 			<form action="/signupauth" method="post" enctype="application/json">
+				<div class="text-input">
+					<i class="ri-user-fill"></i>
+					<input type="text" id="username" name="username" placeholder="Username">
+				</div>
+				<div class="text-input">
+					<i class="ri-lock-fill"></i>
+					<input type="password" id="password" name="password" placeholder="Password">
+				</div>
+				<div class="text-input">
+					<i class="ri-lock-fill"></i>
+					<input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm Password">
+				</div>
 				<button class="login-btn" type="submit" href="/signupauth">SIGNUP</button>
 			</form>
 			<a href="#" class="forgot">Forgot Username/Password?</a>

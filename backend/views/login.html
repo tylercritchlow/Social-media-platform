@@ -20,16 +20,16 @@
         </div>
         <div class="login">
             <h3 class="title">User Login</h3>
-            <div class="text-input">
-                <i class="ri-user-fill"></i>
-                <input type="text" id="username" name="username" placeholder="Username">
-            </div>
-            <div class="text-input">
-                <i class="ri-lock-fill"></i>
-                <input type="password" id="password" name="password" placeholder="Password">
-            </div>
 			<form action="/auth" method="post" enctype="application/json">
-            	<button type="submit" class="login-btn">LOGIN</button>
+				<div class="text-input">
+					<i class="ri-user-fill"></i>
+					<input type="text" id="username" name="username" placeholder="Username">
+				</div>
+				<div class="text-input">
+					<i class="ri-lock-fill"></i>
+					<input type="password" id="password" name="password" placeholder="Password">
+				</div>
+            	<input type="submit" class="login-btn" value="LOGIN">
 			</form>
             <a href="#" class="forgot">Forgot Username/Password?</a>
             <div class="create">
