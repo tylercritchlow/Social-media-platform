@@ -216,6 +216,10 @@ app.route('/editPost')
       });
     });
 
+app.get('/account', rateLimitMiddleware, function(request, response) {
+  response.sendFile(path.join(__dirname + '/views/account.html'));
+});
+
 app.get('/createaccount', rateLimitMiddleware, function(request, response) {
   response.sendFile(path.join(__dirname + '/views/signup.html'));
 });
