@@ -56,6 +56,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/static'));
 app.use(cookieParser());
+app.use(express.static(__dirname + '/img'))
 
 /**
  * Generates a json web token, based on user's password.
