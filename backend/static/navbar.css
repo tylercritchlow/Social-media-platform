@@ -54,6 +54,15 @@ button:hover {
 
 .container {
     display: flex;
-    justify-content: center;
+    align-items: center;
     padding-top: 5%;
+    flex-direction: column;
+    font-family: 'Poppins', sans-serif;
+    color: #edf0f1;
+    text-decoration: none;
+    left: 100px;
+}
+
+.profilepicture {
+    clip-path: circle();
 }
