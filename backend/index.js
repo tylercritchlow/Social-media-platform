@@ -56,6 +56,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(express.static(__dirname + '/static'));
 app.use(cookieParser());
+app.use(express.static(__dirname + '/img'))
 
 /**
  * Generates a json web token, based on user's password.
@@ -215,6 +216,10 @@ app.route('/editPost')
         response.send('Post edited successfully');
       });
     });
+
+app.get('/account', rateLimitMiddleware, function(request, response) {
+  response.sendFile(path.join(__dirname + '/views/account.html'));
+});
 
 app.get('/createaccount', rateLimitMiddleware, function(request, response) {
   response.sendFile(path.join(__dirname + '/views/signup.html'));
