@@ -10,7 +10,7 @@
     "express-session": "^1.17.3",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
-    "mysql2": "^3.6.1",
+    "mysql2": "^3.9.4",
     "node-localstorage": "^3.0.5",
     "oauth": "^0.10.0",
     "path": "^0.12.7"
